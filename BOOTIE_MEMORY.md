@@ -230,7 +230,7 @@ node scripts/test-3-questions.js
 
 ---
 
-## 🚀 Integración Remota (InfoDoc + Bootie) - 25 Ene 2026
+## 🚀 Integración Remota (InfoDoc + Bootie) - 26 Ene 2026
 
 ### Arquitectura de Micro-frontend
 - **Objetivo**: Integrar Bootie en `infodoc-cantv` sin tocar su lógica interna.
@@ -238,6 +238,12 @@ node scripts/test-3-questions.js
   - **Front (InfoDoc)**: Widget conecta a `NEXT_PUBLIC_BOOTIE_API_URL`
   - **Back (Bootie)**: Habilitado CORS (`Access-Control-Allow-Origin: *`)
   - **Resultado**: InfoDoc mantiene su chat original, Bootie flota encima como servicio independiente.
+
+### 🎯 Comportamiento del Widget (26-Ene)
+- **Display Condicional**: Bootie solo aparece en la **página principal** (`/`) de InfoDoc.
+- **Navegación**: Al navegar a otras rutas (`/usuarios`, `/reportes`, etc.), el widget se oculta automáticamente.
+- **Razón**: Base de conocimientos limitada a soporte de landing page.
+- **Implementación**: Detección de ruta con `usePathname()` de Next.js.
 
 ### 🎨 Mejoras de UI/UX
 - **Avatar**: Actualizado a `bootieFgris.png` (versión gris).

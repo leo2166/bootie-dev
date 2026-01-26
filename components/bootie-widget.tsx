@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export default function BootieWidget() {
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -92,6 +94,11 @@ export default function BootieWidget() {
             setIsLoading(false);
         }
     };
+
+    // Solo mostrar en la página principal de InfoDoc
+    if (pathname !== '/') {
+        return null;
+    }
 
     return (
         <>

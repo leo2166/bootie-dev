@@ -264,4 +264,27 @@ node scripts/test-3-questions.js
 - Todo documentado en `walkthrough.md` y `BOOTIE_MEMORY.md`.
 
 ---
-**Última actualización**: 25 de Enero, 2026 - 19:15
+
+## 🚀 Estabilización de Conversores y Regeneración (11-Feb-2026)
+
+### 🛠️ Correcciones Técnicas (`lib/converters.ts`)
+- **DOCX/PDF**: Robustecimiento total. Se mejoró la extracción de imágenes y tablas en DOCX. Validación de buffers para evitar errores 500.
+- **PPTX**: **Soporte deshabilitado temporalmente**. Se detectó que la librería actual (`mammoth`) no es apta para presentaciones. Ahora lanza un error explícito 400 sugiriendo conversión manual a PDF/DOCX.
+- **Endpoint**: `/api/admin/upload` ahora retorna errores descriptivos en lugar de fallos internos.
+
+### 🏗️ Regeneración de KB
+- **Script Maestro**: Creado `scripts/regenerate-kb.ts` que automatiza el flujo completo: `raw_docs` -> `documents/` -> `knowledge-base.json`.
+- **Estado Actual**: **9 documentos indexados** exitosamente.
+- **Documentos Clave**:
+  - Nómina 2026 (DOCX)
+  - Reembolsos Médicos (DOCX)
+  - Emergencias (DOCX)
+  - Contactos (DOCX)
+  - Carta Aval (DOCX)
+
+### 💡 Próxima Sesión
+- Los usuarios ya pueden cargar archivos DOCX/PDF desde el Admin Panel de forma segura.
+- Se recomienda investigar `pptx-compose` o similar si el soporte de PowerPoint se vuelve crítico.
+
+---
+**Última actualización**: 11 de Febrero, 2026 - 05:30

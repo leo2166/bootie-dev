@@ -1,4 +1,6 @@
-<img src="/kb-images/nomina cantv ano 2026_1770685018596.png" /><img src="/kb-images/nomina cantv ano 2026_1770685018599.png" />01
+![Imagen](/kb-images/upload_1770801980191_l5qjn.png)
+![Imagen](/kb-images/upload_1770801980194_7ooz2.png)
+01
 
 2026
 
@@ -10,7 +12,9 @@
 | 19 | 20 | 21 | 22Bono Vital | 23 | 24 | 25 |
 | 26 | 27 | 28 | 292da quincena | 30 | 31 |  |
 
-<img src="/kb-images/nomina cantv ano 2026_1770685018601.png" /><img src="/kb-images/nomina cantv ano 2026_1770685018604.png" />02
+![Imagen](/kb-images/upload_1770801980196_1w95hh.png)
+![Imagen](/kb-images/upload_1770801980198_yns1vk.png)
+02
 
 2026
 

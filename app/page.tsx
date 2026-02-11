@@ -52,6 +52,11 @@ export default function Home() {
 
       {/* Widget de Bootie */}
       <BootieWidget />
+
+      {/* Admin Link */}
+      <a href="/admin" className="absolute top-4 right-4 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 flex items-center gap-2">
+        <span>⚙️</span> Panel Admin
+      </a>
     </div>
   );
 }

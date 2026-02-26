@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const documentsDir = path.join(process.cwd(), 'documents');
+const documentsDir = path.join(process.cwd(), 'data', 'documents');
 const filename = 'nomina-marzo-2026.md';
 const filePath = path.join(documentsDir, filename);
 

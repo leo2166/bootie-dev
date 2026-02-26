@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const documentsDir = path.join(process.cwd(), 'documents');
+        const documentsDir = path.join(process.cwd(), 'data', 'documents');
 
         // Verificar que existe el directorio
         if (!fs.existsSync(documentsDir)) {

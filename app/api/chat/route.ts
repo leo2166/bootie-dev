@@ -40,7 +40,7 @@ interface KnowledgeBase {
 // Cargar la base de conocimiento
 function loadKnowledgeBase(): KnowledgeBase | null {
     try {
-        const kbPath = path.join(process.cwd(), "knowledge-base.json");
+        const kbPath = path.join(process.cwd(), "data", "knowledge-base.json");
         if (fs.existsSync(kbPath)) {
             const data = fs.readFileSync(kbPath, "utf-8");
             return JSON.parse(data);

@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const documentsDir = path.join(process.cwd(), 'documents');
-        const kbPath = path.join(process.cwd(), 'knowledge-base.json');
+        const documentsDir = path.join(process.cwd(), 'data', 'documents');
+        const kbPath = path.join(process.cwd(), 'data', 'knowledge-base.json');
 
         const result = buildKnowledgeBase(documentsDir, kbPath);
 

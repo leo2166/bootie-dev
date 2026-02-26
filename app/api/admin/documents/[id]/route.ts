@@ -47,7 +47,7 @@ export async function DELETE(
         const documentId = decodeURIComponent(params.id);
         console.log('🆔 Document ID decoded:', documentId);
 
-        const documentsDir = path.join(process.cwd(), 'documents');
+        const documentsDir = path.join(process.cwd(), 'data', 'documents');
         const filePath = path.join(documentsDir, `${documentId}.md`);
         console.log('📂 Target Path:', filePath);
 
@@ -67,7 +67,7 @@ export async function DELETE(
 
         // Regenerar knowledge-base.json
         console.log('🔄 Regenerando KB...');
-        const kbPath = path.join(process.cwd(), 'knowledge-base.json');
+        const kbPath = path.join(process.cwd(), 'data', 'knowledge-base.json');
         const result = buildKnowledgeBase(documentsDir, kbPath);
 
         if (!result.success) {

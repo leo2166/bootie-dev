@@ -146,7 +146,11 @@ export function buildKnowledgeBase(documentsDir: string, outputFile: string): {
         return {
             success: true,
             message: 'Knowledge base actualizada exitosamente',
-            stats: { documentCount: Object.keys(sheets).length }
+            stats: {
+                documentCount: Object.keys(sheets).length,
+                totalDocs: Object.keys(sheets).length,
+                totalChunks: 0 // No chunking implemented yet
+            }
         };
     } catch (error: any) {
         return {

@@ -287,4 +287,17 @@ node scripts/test-3-questions.js
 - Se recomienda investigar `pptx-compose` o similar si el soporte de PowerPoint se vuelve crítico.
 
 ---
-**Última actualización**: 11 de Febrero, 2026 - 05:30
+## 🚀 Estabilización Final y Soporte de Imágenes (25-Feb-2026)
+
+### 🛠️ Mejoras y Correcciones Admin Panel
+- **Soporte de Imágenes (OCR)**: Integrado `tesseract.js` para procesar `JPG`, `JPEG` y `PNG`. Ahora Bootie puede leer texto de imágenes subidas al panel.
+- **Carpeta de Datos (`data/`)**: Se movieron `documents/` y `knowledge-base.json` a una carpeta raíz `data/`. Esto soluciona el bucle de "Compiling..." al evitar que cambios en la base de conocimientos provoquen reinicios del servidor dev.
+- **Botón Eliminar Fix**: Corregida la lógica de eliminación para manejar correctamente nombres con espacios y caracteres especiales.
+- **PDF Worker Fix**: Re-creado el script de worker para `pdf-parse` que estaba extraviado.
+
+### 🏗️ Arquitectura Actualizada
+- Todos los archivos de conocimiento residen en `data/documents/`.
+- La base indexada reside en `data/knowledge-base.json`.
+- API routes actualizadas para reflejar estos cambios.
+
+**Última actualización**: 25 de Febrero, 2026 - 12:25

@@ -9,6 +9,7 @@ if (typeof global.DOMMatrix === 'undefined') {
 import fs from 'fs';
 import path from 'path';
 const mammoth = require('mammoth');
+const Tesseract = require('tesseract.js');
 // pdf-parse logic moved to child process
 
 const IMAGES_DIR = path.join(process.cwd(), 'public/kb-images');
@@ -263,6 +264,29 @@ export async function convertPdfToMarkdown(buffer: Buffer): Promise<string> {
 }
 
 /**
+ * Convierte un buffer de imagen (JPG/PNG) a Markdown usando Tesseract OCR
+ */
+export async function convertImageToMarkdown(buffer: Buffer): Promise<string> {
+    try {
+        console.log('🔄 Iniciando OCR con Tesseract.js...');
+        const result = await Tesseract.recognize(buffer, 'spa', {
+            logger: (m: any) => console.log(`  👁️ OCR Progress: ${m.status} (${(m.progress * 100).toFixed(0)}%)`)
+        });
+
+        const text = result.data.text.trim();
+
+        if (text.length < 10) {
+            return `> **AVISO**: Se procesó la imagen pero el texto extraído es muy corto o ilegible.\n\nContenido extraído:\n${text}`;
+        }
+
+        return `## [Texto extraído de imagen]\n\n${text}`;
+    } catch (error: any) {
+        console.error('Error in OCR:', error);
+        throw new Error(`Failed to process image with OCR: ${error.message}`);
+    }
+}
+
+/**
  * Sanitiza un nombre de archivo para evitar problemas de seguridad
  */
 export function sanitizeFilename(filename: string): string {
@@ -278,14 +302,15 @@ export function sanitizeFilename(filename: string): string {
 /**
  * Determina el tipo de conversión necesaria según la extensión
  */
-export function getConverterByExtension(filename: string): 'docx' | 'pptx' | 'pdf' | 'txt' | 'md' | null {
+export function getConverterByExtension(filename: string): 'docx' | 'pptx' | 'pdf' | 'txt' | 'md' | 'image' | null {
     const ext = filename.toLowerCase().split('.').pop();
-    const mapping: Record<string, 'docx' | 'pptx' | 'pdf' | 'txt' | 'md'> = {
+    const mapping: Record<string, 'docx' | 'pptx' | 'pdf' | 'txt' | 'md' | 'image'> = {
         'docx': 'docx', 'doc': 'docx',
         // 'pptx': 'pptx', 'ppt': 'pptx', // Deshabilitado temporalmente
         'pdf': 'pdf',
         'txt': 'txt',
-        'md': 'md', 'markdown': 'md'
+        'md': 'md', 'markdown': 'md',
+        'jpg': 'image', 'jpeg': 'image', 'png': 'image'
     };
     return mapping[ext || ''] || null;
 }

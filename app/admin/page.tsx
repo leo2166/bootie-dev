@@ -39,6 +39,9 @@ export default function AdminPage() {
             setUsername(storedUser);
             setPassword(storedPass);
             checkLogin(storedUser, storedPass);
+        } else {
+            // No credentials, stay unauthorized
+            setAuthorized(false);
         }
     }, []);
 
@@ -228,7 +231,9 @@ export default function AdminPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: 'success', text: `✅ KB reconstruida. ${data.stats.totalDocs} docs, ${data.stats.totalChunks} chunks.` });
+                const totalDocs = data.stats?.totalDocs ?? data.stats?.documentCount ?? 0;
+                const totalChunks = data.stats?.totalChunks ?? 0;
+                setMessage({ type: 'success', text: `✅ KB reconstruida. ${totalDocs} docs, ${totalChunks} chunks.` });
             } else {
                 setMessage({ type: 'error', text: data.message });
             }
@@ -325,7 +330,7 @@ export default function AdminPage() {
                                 id="fileInput"
                                 className="hidden"
                                 onChange={(e) => e.target.files?.[0] && handleUploadPhase1(e.target.files[0])}
-                                accept=".docx,.pdf,.pptx,.txt,.md"
+                                accept=".docx,.pdf,.pptx,.txt,.md,.jpg,.jpeg,.png"
                             />
                             <div className="text-4xl mb-4">📂</div>
                             <p className="text-gray-300 font-medium">Arrastra archivos aquí o haz clic para seleccionar</p>

@@ -5,6 +5,7 @@ import {
     convertDocxToMarkdown,
     convertPptxToMarkdown,
     convertPdfToMarkdown,
+    convertImageToMarkdown,
     sanitizeFilename,
     getConverterByExtension
 } from '@/lib/converters';
@@ -88,6 +89,9 @@ export async function POST(req: NextRequest) {
             case 'pdf':
                 markdownContent = await convertPdfToMarkdown(buffer);
                 break;
+            case 'image':
+                markdownContent = await convertImageToMarkdown(buffer);
+                break;
             case 'txt':
             case 'md':
                 markdownContent = buffer.toString('utf-8');
@@ -110,7 +114,7 @@ export async function POST(req: NextRequest) {
         const originalName = path.parse(file.name).name;
         const safeName = sanitizeFilename(originalName);
         const outputFilename = `${safeName}.md`;
-        const documentsDir = path.join(process.cwd(), 'documents');
+        const documentsDir = path.join(process.cwd(), 'data', 'documents');
         const outputPath = path.join(documentsDir, outputFilename);
 
         // Guardar archivo SIEMPRE para debug, incluso si es empty (pero lanzamos error)
@@ -137,7 +141,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const kbPath = path.join(process.cwd(), 'knowledge-base.json');
+        const kbPath = path.join(process.cwd(), 'data', 'knowledge-base.json');
         const result = buildKnowledgeBase(documentsDir, kbPath);
 
         if (!result.success) {

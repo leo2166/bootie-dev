@@ -219,8 +219,11 @@ export async function convertPdfToMarkdown(buffer: Buffer): Promise<string> {
     fs.writeFileSync(tempFile, buffer);
 
     return new Promise((resolve, reject) => {
-        const workerScript = path.join(process.cwd(), 'scripts/parse-pdf-worker.js');
-        const child = spawn('node', [workerScript, tempFile]);
+        const cp = require('child_process');
+        // Spread operators defeat Next.js NFT static string analysis
+        const pathParts = ['scripts', 'parse-pdf-worker.js'];
+        const workerScript = path.resolve(process.cwd(), ...pathParts);
+        const child = cp.spawn('node', [workerScript, tempFile]);
 
         let output = '';
         let errorOutput = '';

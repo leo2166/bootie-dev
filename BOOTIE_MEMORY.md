@@ -301,3 +301,17 @@ node scripts/test-3-questions.js
 - API routes actualizadas para reflejar estos cambios.
 
 **Última actualización**: 25 de Febrero, 2026 - 12:25
+
+---
+## 🚀 Estabilización Final y Despliegue (25-Feb-2026 - Tarde)
+
+### 🛠️ Correcciones Finales Aplicadas
+- **Admin Panel Document Deletion**: Solucionado el problema errático al eliminar documentos. El endpoint de borrado (`DELETE /api/admin/documents/[id]`) fue reforzado para validar rutas, borrar tanto el archivo `.md` residual como regenerar instantáneamente el `knowledge-base.json`.
+- **Integración TailwindCSS v4**: Resuelto un problema de caché/build ("Can't resolve 'tailwindcss'") con Next.js Turbopack, reinstalando los paquetes de Tailwind V4 y ajustando `globals.css` al estándar de Next.
+- **Avatar de Bootie**: Se corrigieron las referencias huérfanas al antiguo avatar gris (`bootieFgris.png`) para que ahora todo el widget apunte uniformemente al diseño de la mascota principal (`bootie_naranja.png`).
+
+### 🏗️ Estado Actual del Servidor
+- El **Servidor de Desarrollo** (`npm run dev`) ahora inicia sin fallos de compilación CSS en el **puerto 8000**.
+- Despliegue en **GitHub y Vercel** recomendado para pruebas en vivo (todo el código fue empujado a origin/main).
+
+**Última actualización**: 25 de Febrero, 2026 - 22:15

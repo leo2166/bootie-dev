@@ -58,7 +58,15 @@ function findRelevantSections(query: string, kb: KnowledgeBase): string[] {
     const relevantSections: string[] = [];
 
     for (const [key, sheet] of Object.entries(kb.sheets)) {
-        const matchKeyword = sheet.keywords.some(kw => queryLower.includes(kw.toLowerCase()));
+        // Coincidencia por palabra exacta (keywords)
+        const matchKeyword = sheet.keywords.some(kw => {
+            const kwLower = kw.toLowerCase();
+            // Usamos una búsqueda de palabra completa con regex
+            const regex = new RegExp(`\\b${kwLower}\\b`, 'i');
+            return regex.test(queryLower);
+        });
+
+        // Coincidencia por título (solo si la palabra del título está en la consulta)
         const matchTitle = queryWords.some(word => sheet.titulo.toLowerCase().includes(word));
 
         if (matchKeyword || matchTitle) {
@@ -102,15 +110,17 @@ REGLAS CRÍTICAS - DEBES SEGUIRLAS SIEMPRE:
 
 3. **Responde con precisión y brevedad**: Extrae solo la información relevante que responde directamente a la pregunta.
 
-4. **Formato de respuesta preferido**:
+4. **Si la información NO está en el contexto, dilo claramente**: No inventes números ni uses contactos de un departamento para responder sobre otro. Di: "No tengo información específica sobre [tema] en mi base de datos actual."
+
+5. **Formato de respuesta preferido**:
    - Usa viñetas simples (*) para listas
    - Usa negrita (**texto**) para resaltar información importante
    - Mantén los links de email pero en texto plano o formato markdown link
    - Separa secciones con saltos de línea, NO con "---"
 
-5. Si la pregunta es ambigua, responde con una lista de opciones claras.
+6. Si la pregunta es ambigua, responde con una lista de opciones claras.
 
-6. Si no encuentras información, responde: "No tengo información específica sobre eso en mi base de datos actual. ¿Hay algo más en que te pueda ayudar?"
+7. Si no encuentras información relevante o el contexto no aplica al departamento solicitado, responde: "No tengo información específica sobre eso en mi base de datos actual. ¿Hay algo más en que te pueda ayudar?"
 
 7. Mantén un tono respetuoso, claro y directo. Evita tecnicismos innecesarios.
 

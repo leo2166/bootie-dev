@@ -315,3 +315,20 @@ node scripts/test-3-questions.js
 - Despliegue en **GitHub y Vercel** recomendado para pruebas en vivo (todo el código fue empujado a origin/main).
 
 **Última actualización**: 25 de Febrero, 2026 - 22:15
+
+---
+## 🚀 Error en Web y Compatibilidad Vercel (26-Feb-2026)
+
+### ❌ Error Detectado
+- **Síntoma**: Al intentar subir un documento en la web (Vercel), aparece "Error de conexión en Fase 1".
+- **Logs**: `405 Method Not Allowed` en `/api/admin/upload?skipRebuild=true`.
+- **Causa Raíz**:
+    1. **Filesystem de Solo Lectura**: Vercel no permite escribir archivos en `data/documents/` en tiempo de ejecución. El código actual intenta un `fs.writeFileSync` obligatorio en la Fase 1, lo que provoca la falla.
+    2. **CORS/Auth Headers**: Falta `x-admin-auth` en la lista de headers permitidos en `next.config.ts`, lo que puede bloquear peticiones desde el navegador.
+
+### 🛠️ Plan de Acción para Mañana
+1. **Corregir CORS**: Agregar `x-admin-auth` a `Access-Control-Allow-Headers` en `next.config.ts`.
+2. **Robustecer Upload**: Hacer que la escritura en disco sea opcional en la Fase 1. Si falla por ser un entorno de solo lectura (como Vercel), permitir que el proceso continúe para devolver al menos la **Previsualización de Markdown**.
+3. **Advertencia de Fase 2**: Clarificar que la integración final a la Knowledge Base (Fase 2) seguirá fallando en Vercel hasta que se implemente persistencia real (Base de Datos o S3), pero la Fase 1 (conversión y preview) funcionará.
+
+**Estado**: Pausado para continuar mañana. Plan de implementación listo en `implementation_plan.md`.

@@ -1,5 +1,20 @@
 {
   "sheets": {
+    "ajuptel-zulia": {
+      "titulo": "AJUPTEL ZULIA",
+      "contenido": "**Asociación de jubilados Cantv Zulia**\n\n**Ajuptel Zulia.**\n\n** Contactos:**\n\n- Numero de Oficina: \n- Euclides Diaz: 0416-6687944\n- Mercedes Luengo: 0414-6497888\n- Tibisay Castellanos 0424-6830116\n- Olga Infante: 0414-6392742",
+      "keywords": [
+        "ajuptel",
+        "cantv",
+        "contacto",
+        "contactos",
+        "dia",
+        "jubilado",
+        "jubilados",
+        "numero",
+        "zulia"
+      ]
+    },
     "atencion al jubilado contactos": {
       "titulo": "ATENCION AL JUBILADO CONTACTOS",
       "contenido": "ATENCIÓN AL JUBILADO\n\nCONTACTOS\n\n| Cargo | Nombre | Contacto |\n|---|---|---|\n| Consultor | Armando Parodi | 0212 - 5006282[aparodo1@cantv.com.ve](mailto:aparodo1@cantv.com.ve) |\n| Consultor | Efren Boada | 0212 - 5004067eboada01@cantv.com.ve |\n| Analista | Noami Chacón | 0212 - 4512810nchaco01@cantv.com.ve |\n| Analista | Yesenia Parra | [yparra07@cantv.com.ve](mailto:yparra07@cantv.com.ve) |\n| Consultor | Horacio Méndez | 0212-5004572[hmendez01@cantv.com.ve](mailto:hmendez01@cantv.com.ve) |\n| Analista | Yoilet Molina | 0212-5006965[ymolino4@cantv.com.ve](mailto:ymolino4@cantv.com.ve) |",
@@ -145,5 +160,5 @@
       ]
     }
   },
-  "lastUpdated": "2026-02-26T13:49:35.140Z"
+  "lastUpdated": "2026-02-26T14:34:24.309Z"
 }

@@ -9,7 +9,9 @@
     "lint": "eslint",
     "ingest": "tsx scripts/ingest-documents.ts",
     "create-cache": "tsx scripts/create-cache.ts",
-    "extract": "tsx scripts/extract-knowledge.ts"
+    "extract": "tsx scripts/extract-knowledge.ts",
+    "subegit": "powershell -ExecutionPolicy Bypass -File scripts/subegit.ps1",
+    "subegit:msg": "powershell -ExecutionPolicy Bypass -File scripts/subegit.ps1"
   },
   "dependencies": {
     "@google/genai": "^1.37.0",

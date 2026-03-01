@@ -332,3 +332,43 @@ node scripts/test-3-questions.js
 3. **Advertencia de Fase 2**: Clarificar que la integración final a la Knowledge Base (Fase 2) seguirá fallando en Vercel hasta que se implemente persistencia real (Base de Datos o S3), pero la Fase 1 (conversión y preview) funcionará.
 
 **Estado**: Pausado para continuar mañana. Plan de implementación listo en `implementation_plan.md`.
+
+---
+## 🚀 Flujo Definitivo: Local → Git → Vercel (26-Feb-2026 - Mañana)
+
+### ✅ Decisión Tomada
+Se descartó la opción de storage externo (S3, Firebase, etc.). El flujo elegido es **100% estático**:
+1. Actualizar documentos y KB en servidor **local** (Admin Panel local)
+2. Hacer `npm run subegit` → sube todo a GitHub
+3. Vercel despliega automáticamente con el nuevo contenido
+
+### 🛠️ Cambios Aplicados
+
+#### 1. `.gitignore` corregido
+- Se eliminó `/data/` del `.gitignore` para que la carpeta `data/` (con `documents/` y `knowledge-base.json`) se incluya en el repositorio y Vercel la reciba como contenido estático.
+
+#### 2. Script `scripts/subegit.ps1` creado
+- Automatiza `git add -A` + `git commit` + `git push origin main` con un solo comando.
+- Si no hay cambios, avisa y no hace nada.
+- Mensaje de commit: fecha/hora automática o mensaje personalizado.
+
+#### 3. Comando npm registrado en `package.json`
+```json
+"subegit": "powershell -ExecutionPolicy Bypass -File scripts/subegit.ps1"
+```
+
+### 📋 Uso
+```bash
+# Commit automático con fecha/hora
+npm run subegit
+
+# Commit con mensaje personalizado
+npm run subegit -- "Agrego documento de vacaciones"
+```
+
+### ⚠️ Consideraciones
+- El script `npm run subegit` solo funciona dentro de la carpeta del proyecto (donde está el `package.json`).
+- El Admin Panel con subida de documentos **solo funciona en local**. En Vercel la KB es de solo lectura (contenido estático).
+- Si se quiere usar `subegit` en otro proyecto: copiar `scripts/subegit.ps1` y agregar la entrada en su `package.json`.
+
+**Última actualización**: 26 de Febrero, 2026 - 10:42

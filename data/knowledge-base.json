@@ -93,7 +93,7 @@
     },
     "nomina-anual-cantv-2026": {
       "titulo": "NOMINA ANUAL CANTV 2026",
-      "contenido": "**MES**\t\t**Bono Alimentario**\t**Primera quincena**     \t**Bon**o vital           **Segunda quincena**\n\nFebrero\t\t\t5\t\t\t12\t\t\t13\t\t26\n\nMarzo\t\t\t5\t\t\t12\t\t\t17\t\t26\t\n\nAbril\t\t\t1\t\t\t14\t\t\t23\t\t28\n\nMayo\n\nJunio\n\nJulio\n\nAgosto\n\nSeptiembre\n\nOctubre\n\nNoviembre\n\nDiciembre\t\n\n**Días de fiesta Sudaban:** febrero 16 y 17 (lunes y Martes de Carnaval), Marzo: 19 día de san José, Abril: 2 y 3  jueves y viernes santo",
+      "contenido": "**MES**\t\t**Bono Alimentario**\t**Primera quincena**     \t**Bon**o vital           **Segunda quincena**\n\nFebrero\t\t\t5\t\t\t12\t\t\t13\t\t26\n\nMarzo\t\t\t5\t\t\t12\t\t\t17\t\t26\t\n\nAbril\t\t\t1\t\t\t14\t\t\t23\t\t28\n\nMayo\t\t\t5\t\t\t12\t\t\t17\t\t26\t\n\nJunio\t\t\t4\t\t\t11\t\t\t18\t\t25\n\nJulio\t\t\t2\t\t\t14\t\t\t23\t\t28\n\nAgosto\t\t\t6\t\t\t13\t\t\t20\t\t27\n\nSeptiembre\t\t3\t\t\t10\t\t\t17\t\t29\n\nOctubre\t\t8\t\t\t13\t\t\t22\t\t29\n\nNoviembre\t\t5\t\t\t12\t\t\t19\t\t26\n\nDiciembre\t\t3\t\t\t10\t\t\t17\t\t29\n\n**Días de fiesta Sudaban:** febrero 16 y 17 (lunes y Martes de Carnaval), Marzo: 19 día de san José, Abril: 2 y 3  jueves y viernes santo.",
       "keywords": [
         "2026",
         "abril",
@@ -160,5 +160,5 @@
       ]
     }
   },
-  "lastUpdated": "2026-02-26T14:34:24.309Z"
+  "lastUpdated": "2026-03-01T14:07:47.206Z"
 }

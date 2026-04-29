@@ -51,30 +51,66 @@ function loadKnowledgeBase(): KnowledgeBase | null {
     return null;
 }
 
-// Buscar información relevante basada en palabras clave en las "hojas"
+// Normalizar texto: quitar acentos y pasar a minúsculas para comparación robusta
+function normalizeText(text: string): string {
+    return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, ""); // elimina diacríticos (acentos)
+}
+
+// Buscar información relevante en la KB con scoring por relevancia
 function findRelevantSections(query: string, kb: KnowledgeBase): string[] {
-    const queryLower = query.toLowerCase();
-    const queryWords = queryLower.split(/\s+/).filter(w => w.length > 3);
-    const relevantSections: string[] = [];
+    const queryNorm = normalizeText(query);
+    // Palabras de la consulta con 3+ caracteres
+    const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 3);
+    const scores: Array<{ key: string; score: number }> = [];
 
     for (const [key, sheet] of Object.entries(kb.sheets)) {
-        // Coincidencia por palabra exacta (keywords)
-        const matchKeyword = sheet.keywords.some(kw => {
-            const kwLower = kw.toLowerCase();
-            // Usamos una búsqueda de palabra completa con regex
-            const regex = new RegExp(`\\b${kwLower}\\b`, 'i');
-            return regex.test(queryLower);
-        });
+        let score = 0;
 
-        // Coincidencia por título (solo si la palabra del título está en la consulta)
-        const matchTitle = queryWords.some(word => sheet.titulo.toLowerCase().includes(word));
+        // 1. Coincidencia exacta de keyword normalizada (mayor peso)
+        for (const kw of sheet.keywords) {
+            const kwNorm = normalizeText(kw);
+            // Buscar como palabra completa usando espacios/inicio/fin (robusto con acentos)
+            const escapedKw = kwNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pattern = new RegExp(`(^|\\s)${escapedKw}(\\s|$)`, 'i');
+            if (pattern.test(queryNorm)) {
+                score += 10;
+            } else if (queryNorm.includes(kwNorm)) {
+                // Coincidencia parcial (ej: "emergencias" contiene "emergencia")
+                score += 5;
+            }
+        }
 
-        if (matchKeyword || matchTitle) {
-            relevantSections.push(sheet.contenido);
+        // 2. Coincidencia por título normalizado
+        const titleNorm = normalizeText(sheet.titulo);
+        for (const word of queryWords) {
+            if (titleNorm.includes(word)) {
+                score += 5;
+            }
+        }
+
+        // 3. Búsqueda directa en el contenido (respaldo crítico para evitar falsos negativos)
+        const contentNorm = normalizeText(sheet.contenido);
+        for (const word of queryWords) {
+            if (word.length >= 4 && contentNorm.includes(word)) {
+                score += 2;
+            }
+        }
+
+        if (score > 0) {
+            scores.push({ key, score });
         }
     }
 
-    return relevantSections;
+    // Ordenar por relevancia descendente
+    scores.sort((a, b) => b.score - a.score);
+
+    // Solo incluir secciones con score >= 2 (umbral mínimo para evitar ruido)
+    return scores
+        .filter(({ score }) => score >= 2)
+        .map(({ key }) => kb.sheets[key].contenido);
 }
 
 // Obtener fecha actual para contexto temporal
@@ -89,15 +125,26 @@ function getCurrentDateContext() {
 
 const { currentMonth, currentYear } = getCurrentDateContext();
 
-const systemPrompt = `Eres un asistente institucional llamado Bootie. Tu función es responder preguntas de jubilados de CANTV sobre salud, reembolsos, atención y servicios disponibles. 
+// ─── SYSTEM PROMPT PRINCIPAL ──────────────────────────────────────────────────
+const systemPrompt = `Eres un asistente institucional llamado Bootie. Tu función es responder preguntas de jubilados de CANTV sobre salud, reembolsos, atención y servicios disponibles.
 
 CONTEXTO TEMPORAL ACTUAL:
 - Mes actual: ${currentMonth} ${currentYear}
 - IMPORTANTE: Cuando te pregunten sobre fechas de pago SIN especificar mes, asume que preguntan por el MES ACTUAL (${currentMonth}).
 
-REGLAS CRÍTICAS - DEBES SEGUIRLAS SIEMPRE:
+══════════════════════════════════════════════════════
+🔒 REGLA ABSOLUTA #1 - FIDELIDAD A LA BASE DE CONOCIMIENTOS:
+══════════════════════════════════════════════════════
+- SOLO puedes responder usando información del CONTEXTO que se te proporcionará en cada pregunta.
+- NUNCA uses tu conocimiento general entrenado para inventar, suponer o completar información.
+- Si la información NO está en el CONTEXTO, responde: "No tengo información específica sobre eso en mi base de datos actual. ¿Hay algo más en que te pueda ayudar?"
+- NUNCA inventes números de teléfono, correos, fechas, nombres o requisitos que no estén en el CONTEXTO.
+- Si el CONTEXTO tiene información parcial, proporciona solo lo que dice el CONTEXTO y admite el resto como desconocido.
+══════════════════════════════════════════════════════
 
-1. **NUNCA envíes markdown crudo**: 
+REGLAS CRÍTICAS DE FORMATO - DEBES SEGUIRLAS SIEMPRE:
+
+1. **NUNCA envíes markdown crudo**:
    - NO uses headers markdown (# ## ###)
    - NO copies tablas markdown (| columna | columna |)
    - NO incluyas HTML (<br>, <table>, etc.)
@@ -110,33 +157,29 @@ REGLAS CRÍTICAS - DEBES SEGUIRLAS SIEMPRE:
 
 3. **Responde con precisión y brevedad**: Extrae solo la información relevante que responde directamente a la pregunta.
 
-4. **Si la información NO está en el contexto, dilo claramente**: No inventes números ni uses contactos de un departamento para responder sobre otro. Di: "No tengo información específica sobre [tema] en mi base de datos actual."
-
-5. **Formato de respuesta preferido**:
+4. **Formato de respuesta preferido**:
    - Usa viñetas simples (*) para listas
    - Usa negrita (**texto**) para resaltar información importante
-   - Mantén los links de email pero en texto plano o formato markdown link
+   - Mantén los links de email en formato markdown link
    - Separa secciones con saltos de línea, NO con "---"
 
-6. Si la pregunta es ambigua, responde con una lista de opciones claras.
+5. Si la pregunta es ambigua, responde con una lista de opciones claras.
 
-7. Si no encuentras información relevante o el contexto no aplica al departamento solicitado, responde: "No tengo información específica sobre eso en mi base de datos actual. ¿Hay algo más en que te pueda ayudar?"
+6. Mantén un tono respetuoso, claro y directo. Evita tecnicismos innecesarios.
 
-7. Mantén un tono respetuoso, claro y directo. Evita tecnicismos innecesarios.
-
-8. **REGLAS DE CORTESÍA**:
+7. **REGLAS DE CORTESÍA**:
    - Si el usuario dice "gracias", "muchas gracias" o similar, responde: "¡Estamos para servir! ¿Hay algo más en que te pueda ayudar?"
    - Si el usuario se despide ("chao", "adiós", "hasta luego", "bye", "nos vemos"), responde: "¡Nos vemos en otra oportunidad! Que tengas un excelente día. 😊"
    - Siempre muestra empatía y calidez con el usuario para que se sienta bien atendido
 
-9. **REGLAS INTELIGENTES DE FECHAS Y PAGOS**:
+8. **REGLAS INTELIGENTES DE FECHAS Y PAGOS**:
    - Si preguntan "¿Cuándo pagan?" SIN especificar mes → Muestra SOLO las fechas del MES ACTUAL (${currentMonth} ${currentYear})
    - Si preguntan por un mes específico (ej: "¿Cuándo pagan en marzo?") → Muestra SOLO ese mes
    - NO muestres todo el calendario del año, solo la información relevante del mes solicitado o actual
    - Si preguntan por un mes del que NO tienes información, responde: "Solo tengo el calendario de [lista meses disponibles]. ¿Cuál te interesa?"
-   
-10. **CLARIFICACIONES ESPECÍFICAS**:
-    - En los números de emergencia CANTV, aclara explícitamente que el número **0800-Cantv-00** y otros son generales, PERO el número **\*426** (asterisco 426) es exclusivo para llamar desde **Movilnet** (Asegúrate de incluir el símbolo * antes del número).
+
+9. **CLARIFICACIONES ESPECÍFICAS**:
+    - En los números de emergencia CANTV, aclara explícitamente que el número **0800-Cantv-00** y otros son generales, PERO el número **\\*426** (asterisco 426) es exclusivo para llamar desde **Movilnet** (Asegúrate de incluir el símbolo * antes del número).
 
 EJEMPLOS DE RESPUESTAS SOBRE FECHAS:
 
@@ -153,8 +196,6 @@ Respuesta CORRECTA para ${currentMonth}:
 
 Respuesta INCORRECTA (NUNCA HAGAS ESTO):
 [Mostrar todo el calendario del año 2026 completo]
-
----
 
 EJEMPLO DE RESPUESTA DE CONTACTOS:
 
@@ -239,8 +280,21 @@ export async function POST(req: NextRequest) {
 
         if (relevantSections.length > 0) {
             console.log(`✅ Secciones encontradas: ${relevantSections.length}`);
-            const context = "INFORMACIÓN DEL DOCUMENTO:\n\n" + relevantSections.join("\n\n---\n\n");
-            const currentInfo = relevantSections;
+            const context = "INFORMACIÓN DE LA BASE DE CONOCIMIENTOS (usa ÚNICAMENTE esta información para responder):\n\n"
+                + relevantSections.join("\n\n---\n\n");
+
+            // Instrucción explícita de fidelidad al contexto en cada consulta
+            const userInstruction = `CONTEXTO DISPONIBLE:
+${context}
+
+PREGUNTA DEL USUARIO: ${message}
+
+INSTRUCCIONES CRÍTICAS:
+- Responde ÚNICAMENTE con información del CONTEXTO DISPONIBLE arriba.
+- Si la respuesta exacta no está en el contexto, di que no tienes esa información específica.
+- NO uses conocimiento general ni inventes datos.
+
+RESPUESTA:`;
 
             // CAPA 1: Gemini 2.5 Flash (Principal)
             console.log("\n🔷 [CAPA 1] Intentando Gemini 2.5 Flash...");
@@ -250,7 +304,11 @@ export async function POST(req: NextRequest) {
                 if (!genAI) throw new Error("Google GenAI client not initialized");
                 const result = await genAI.models.generateContent({
                     model: "gemini-2.5-flash",
-                    contents: `${systemPrompt}\n\nCONTEXTO:\n${context}\n\nPREGUNTA: ${message}\n\nRESPUESTA:`,
+                    config: {
+                        systemInstruction: systemPrompt,
+                        temperature: 0.15,
+                    },
+                    contents: userInstruction,
                 });
                 console.timeEnd("gemini_2.5");
                 console.timeEnd("chat_total");
@@ -270,10 +328,10 @@ export async function POST(req: NextRequest) {
                         const completion = await groq.chat.completions.create({
                             messages: [
                                 { role: "system", content: systemPrompt },
-                                { role: "user", content: `CONTEXTO:\n${context}\n\nPREGUNTA: ${message}` }
+                                { role: "user", content: userInstruction }
                             ],
                             model: "llama-3.1-8b-instant",
-                            temperature: 0.7,
+                            temperature: 0.15,
                             max_tokens: 1024,
                         });
 
@@ -295,10 +353,10 @@ export async function POST(req: NextRequest) {
                             const completion = await groq.chat.completions.create({
                                 messages: [
                                     { role: "system", content: systemPrompt },
-                                    { role: "user", content: `CONTEXTO:\n${context}\n\nPREGUNTA: ${message}` }
+                                    { role: "user", content: userInstruction }
                                 ],
                                 model: "llama-3.3-70b-versatile",
-                                temperature: 0.7,
+                                temperature: 0.15,
                                 max_tokens: 1024,
                             });
 
@@ -324,10 +382,10 @@ export async function POST(req: NextRequest) {
                         const completion = await gemma3.chat.completions.create({
                             messages: [
                                 { role: "system", content: systemPrompt },
-                                { role: "user", content: `CONTEXTO:\n${context}\n\nPREGUNTA: ${message}` }
+                                { role: "user", content: userInstruction }
                             ],
                             model: "google/gemma-3-27b-it",
-                            temperature: 0.7,
+                            temperature: 0.15,
                             max_tokens: 1024,
                         });
 
@@ -351,7 +409,11 @@ export async function POST(req: NextRequest) {
                     if (!genAI) throw new Error("Google GenAI client not initialized");
                     const result = await genAI.models.generateContent({
                         model: "gemini-2.0-flash",
-                        contents: `${systemPrompt}\n\nCONTEXTO:\n${context}\n\nPREGUNTA: ${message}\n\nRESPUESTA:`,
+                        config: {
+                            systemInstruction: systemPrompt,
+                            temperature: 0.15,
+                        },
+                        contents: userInstruction,
                     });
                     console.timeEnd("gemini_2.0");
                     console.timeEnd("chat_total");
@@ -367,7 +429,7 @@ export async function POST(req: NextRequest) {
                     console.log("\n🔴 [CAPA 6] Todas las IAs fallaron, procesando localmente...");
 
                     let processedInfo = "";
-                    for (const section of currentInfo) {
+                    for (const section of relevantSections) {
                         const cleanSection = section
                             .replace(/^#+\s/gm, "")
                             .replace(/\|.*\|/g, "")
@@ -389,10 +451,10 @@ export async function POST(req: NextRequest) {
                 }
             }
         } else {
-            console.log("⚠️ No se encontró info específica.");
+            console.log("⚠️ No se encontró info específica en la KB.");
             console.timeEnd("chat_total");
             return NextResponse.json({
-                response: "Disculpa esa informacion no se encuentra en mi base de datos, en que mas te puedo ayudar..."
+                response: "Disculpa, esa información no se encuentra en mi base de datos. ¿En qué más te puedo ayudar?"
             });
         }
 

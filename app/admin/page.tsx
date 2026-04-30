@@ -176,7 +176,7 @@ export default function AdminPage() {
 
         try {
             console.log('🗑️ Cancelando proceso, eliminando archivo:', uploadedFileId);
-            await fetch(`/api/admin/documents/${uploadedFileId}`, {
+            await fetch(`/api/admin/documents/${encodeURIComponent(uploadedFileId)}`, {
                 method: 'DELETE',
                 headers: { 'x-admin-auth': getAuthHeader() }
             });
@@ -197,7 +197,7 @@ export default function AdminPage() {
         }
 
         try {
-            const res = await fetch(`/api/admin/documents/${id}`, {
+            const res = await fetch(`/api/admin/documents/${encodeURIComponent(id)}`, {
                 method: 'DELETE',
                 headers: {
                     'x-admin-auth': getAuthHeader()

@@ -372,3 +372,14 @@ npm run subegit -- "Agrego documento de vacaciones"
 - Si se quiere usar `subegit` en otro proyecto: copiar `scripts/subegit.ps1` y agregar la entrada en su `package.json`.
 
 **Última actualización**: 26 de Febrero, 2026 - 10:42
+
+---
+## 🚀 Corrección de Borrado en Admin Panel (30-Abr-2026)
+
+### 🛠️ Problema Resuelto
+- **Síntoma**: No se podían borrar archivos `.md` desde el panel de control si el nombre del archivo contenía espacios (ej. `atencion al jubilado contactos.md`).
+- **Causa Raíz**: La petición `fetch` en `app/admin/page.tsx` no estaba codificando el ID (`id`) en la URL para el método `DELETE`, lo que provocaba que la ruta no fuera válida para Next.js en ciertos navegadores.
+- **Solución**: Se implementó `encodeURIComponent(id)` en los endpoints de `fetch` de eliminación y cancelación de subida en el Panel de Administración.
+- **Git**: Los cambios fueron agregados (`git add`), comprometidos (`git commit`) y subidos (`git push`) al repositorio principal para asegurar que el avance no se pierda al reiniciar la máquina.
+
+**Última actualización**: 30 de Abril, 2026

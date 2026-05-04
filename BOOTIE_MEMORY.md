@@ -383,3 +383,32 @@ npm run subegit -- "Agrego documento de vacaciones"
 - **Git**: Los cambios fueron agregados (`git add`), comprometidos (`git commit`) y subidos (`git push`) al repositorio principal para asegurar que el avance no se pierda al reiniciar la máquina.
 
 **Última actualización**: 30 de Abril, 2026
+
+---
+## 🚀 Sincronización a Vercel desde Local (30-Abr-2026)
+
+### 🛠️ Problema Resuelto
+- **Síntoma**: El entorno "Serverless" de Vercel tiene un sistema de archivos de Solo Lectura. Debido a esto, borrar, crear o modificar documentos `.md` a través del panel en línea fallaba silenciosamente o daba error.
+- **Solución Adoptada**: Se estableció oficialmente la **gestión de conocimiento 100% en local** para evitar costos de bases de datos externas y saltarse la restricción de Vercel.
+
+### 🏗️ Mejoras Implementadas
+1. **Botón "Subir a Vercel"**: Se agregó un botón directamente en el Panel de Control (`/admin`) que ejecuta internamente comandos de Git (`git add`, `git commit` y `git push`) sobre la carpeta `data/`. Esto sincroniza automáticamente los cambios locales de la base de conocimiento hacia GitHub y Vercel con un solo clic.
+2. **Script Ejecutable (`Iniciar_Admin.bat`)**: Se creó un script Batch transparente y nativo de Windows. Este script enciende el servidor `npm run dev` y abre automáticamente la página de administración en el navegador del usuario, facilitando su uso para perfiles no técnicos y evitando cualquier bloqueo por parte de sistemas Antivirus (al no ser un `.exe` compilado).
+
+---
+## 🚀 Mejora del Panel Admin (03-May-2026)
+
+### 🛠️ Estado del Panel
+- **Sincronización Local**: Se ha confirmado que el endpoint `/api/admin/rebuild` funciona correctamente para regenerar la base de conocimientos (`knowledge-base.json`) a partir de los archivos `.md` en `data/documents/`.
+- **Descarte de .bat**: El usuario ha decidido no utilizar el archivo `Iniciar_Admin.bat` debido a errores de ejecución de scripts en su sistema Windows. El objetivo ahora es que el panel administrativo sea 100% funcional de forma nativa a través de `npm run dev`.
+
+### 🏗️ Problemas Identificados y Pendientes
+1. **Error en UI**: En `app/admin/page.tsx`, la lógica de manejo de errores en `handleRebuild` y `handlePhase2Integrate` intentaba leer `data.message` en caso de error, cuando el API devuelve `data.error`. Esto causaba mensajes de error confusos o vacíos.
+2. **Flujo de Actualización**: El usuario reporta dificultades para actualizar la base de conocimientos desde el panel. Se debe verificar que el flujo de "Subida -> Conversión (Fase 1) -> Integración (Fase 2)" sea fluido y no dependa de scripts externos.
+
+### 💡 Próxima Sesión
+- Corregir el mapeo de errores en `app/admin/page.tsx` para mostrar mensajes reales de falla.
+- Verificar el despliegue a Vercel mediante el botón "Subir a Vercel" para asegurar que los cambios locales se reflejen en la nube.
+- Asegurar que la regeneración de la KB limpie correctamente los archivos temporales.
+
+**Última actualización**: 03 de Mayo, 2026 - 08:25

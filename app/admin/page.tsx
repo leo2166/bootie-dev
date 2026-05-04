@@ -10,19 +10,10 @@ interface Doc {
     preview: string;
 }
 
-const getAuthHeader = (user?: string, pass?: string) => {
-    // Si estamos en el cliente, intentar leer de localStorage si no se pasan argumentos
-    if (typeof window !== 'undefined' && !user && !pass) {
-        user = localStorage.getItem('admin_user') || '';
-        pass = localStorage.getItem('admin_pass') || '';
-    }
-    return btoa(`${user}:${pass}`);
-};
+// Credenciales fijas — único administrador, sin pantalla de login
+const getAuthHeader = () => btoa('admin:bootie2026');
 
 export default function AdminPage() {
-    const [authorized, setAuthorized] = useState(false);
-    const [password, setPassword] = useState('');
-    const [username, setUsername] = useState('');
     const [documents, setDocuments] = useState<Doc[]>([]);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -33,47 +24,9 @@ export default function AdminPage() {
     const [uploadedFileId, setUploadedFileId] = useState('');
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('admin_user');
-        const storedPass = localStorage.getItem('admin_pass');
-        if (storedUser && storedPass) {
-            setUsername(storedUser);
-            setPassword(storedPass);
-            checkLogin(storedUser, storedPass);
-        } else {
-            // No credentials, stay unauthorized
-            setAuthorized(false);
-        }
+        loadDocuments();
     }, []);
 
-    const checkLogin = async (user: string, pass: string) => {
-        try {
-            const res = await fetch('/api/admin/documents', {
-                cache: 'no-store',
-                headers: {
-                    'x-admin-auth': getAuthHeader(user, pass)
-                }
-            });
-
-            if (res.ok) {
-                setAuthorized(true);
-                const data = await res.json();
-                setDocuments(data.documents);
-                setMessage(null);
-            } else {
-                setMessage({ type: 'error', text: 'Usuario o contraseña incorrectos' });
-            }
-        } catch (error) {
-            console.error('Error login:', error);
-            setMessage({ type: 'error', text: 'Error de conexión' });
-        }
-    };
-
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        localStorage.setItem('admin_user', username);
-        localStorage.setItem('admin_pass', password);
-        checkLogin(username, password);
-    };
 
     const loadDocuments = async () => {
         try {
@@ -83,7 +36,13 @@ export default function AdminPage() {
                 }
             });
             const data = await res.json();
-            setDocuments(data.documents);
+            if (res.ok && data.documents) {
+                setDocuments(data.documents);
+            } else {
+                console.error('Error en respuesta de documentos:', data.error);
+                setDocuments([]);
+                setMessage({ type: 'error', text: data.error || 'No se pudieron cargar los documentos' });
+            }
         } catch (error) {
             console.error('Error cargando documentos:', error);
         }
@@ -155,7 +114,7 @@ export default function AdminPage() {
                 setPreviewContent('');
                 loadDocuments();
             } else {
-                setMessage({ type: 'error', text: `Error en Fase 2: ${data.message}` });
+                setMessage({ type: 'error', text: `Error en Fase 2: ${data.error || data.message || 'Error desconocido'}` });
                 setUploadPhase('PHASE_1_COMPLETE'); // Permitir reintentar
             }
         } catch (error) {
@@ -235,52 +194,37 @@ export default function AdminPage() {
                 const totalChunks = data.stats?.totalChunks ?? 0;
                 setMessage({ type: 'success', text: `✅ KB reconstruida. ${totalDocs} docs, ${totalChunks} chunks.` });
             } else {
-                setMessage({ type: 'error', text: data.message });
+                setMessage({ type: 'error', text: data.error || data.message || 'Error desconocido' });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Error reconstruyendo KB' });
         }
     };
 
-    if (!authorized) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white scanlines">
-                <form onSubmit={handleLogin} className="bg-gray-800 p-8 rounded-lg shadow-xl border border-purple-500/30 w-full max-w-md">
-                    <h1 className="text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                        BOOTIE ADMIN
-                    </h1>
-                    {message && (
-                        <div className={`mb-4 p-3 rounded text-sm text-center ${message.type === 'success' ? 'bg-green-900/20 text-green-200 border border-green-500/30' : 'bg-red-900/20 text-red-200 border border-red-500/30'}`}>
-                            {message.text}
-                        </div>
-                    )}
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Usuario</label>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-gray-700 border border-gray-600 rounded p-2 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Contraseña</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-gray-700 border border-gray-600 rounded p-2 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                            />
-                        </div>
-                        <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded font-bold hover:opacity-90 transition-opacity">
-                            ACCEDER
-                        </button>
-                    </div>
-                </form>
-            </div>
-        );
-    }
+    const handleDeploy = async () => {
+        if (!confirm('¿Estás seguro de que deseas subir los cambios a GitHub? Esto actualizará la versión pública en Vercel.')) {
+            return;
+        }
+
+        setMessage({ type: 'success', text: 'Iniciando sincronización con GitHub... Por favor espera.' });
+        try {
+            const res = await fetch('/api/admin/deploy', {
+                method: 'POST',
+                headers: {
+                    'x-admin-auth': getAuthHeader()
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage({ type: 'success', text: `✅ ${data.message}` });
+            } else {
+                setMessage({ type: 'error', text: data.error || 'Error en la sincronización' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Error de conexión al intentar sincronizar' });
+        }
+    };
+
 
     return (
         <div className="min-h-screen p-8 bg-gray-900 text-gray-100 scanlines font-mono">
@@ -292,12 +236,7 @@ export default function AdminPage() {
                         </h1>
                         <p className="text-gray-400 text-sm mt-1">Gestión de Conocimiento v2.1</p>
                     </div>
-                    <button
-                        onClick={() => { setAuthorized(false); localStorage.removeItem('admin_pass'); }}
-                        className="text-xs text-gray-500 hover:text-white transition-colors"
-                    >
-                        CERRAR SESIÓN
-                    </button>
+
                 </header>
 
                 {message && (
@@ -392,12 +331,20 @@ export default function AdminPage() {
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <span className="text-pink-400">📚</span> Documentos Actuales ({documents.length})
                         </h2>
-                        <button
-                            onClick={handleRebuild}
-                            className="bg-blue-600/80 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors"
-                        >
-                            🔄 Regenerar KB (Manual)
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleDeploy}
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 transition-all shadow-lg"
+                            >
+                                🚀 Subir a Vercel
+                            </button>
+                            <button
+                                onClick={handleRebuild}
+                                className="bg-blue-600/80 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors"
+                            >
+                                🔄 Regenerar KB
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid gap-4">

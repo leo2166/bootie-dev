@@ -2,7 +2,7 @@
 
 ## 🎯 Acceso Rápido
 
-**URL:** http://localhost:3001/admin  
+**URL:** http://localhost:3000/admin  
 **Usuario:** admin  
 **Contraseña:** bootie2026
 
@@ -11,7 +11,7 @@
 ## 🚀 Subir Documentos de Nómina
 
 ### Método 1: Arrastar y Soltar
-1. Abre http://localhost:3001/admin en tu navegador
+1. Abre http://localhost:3000/admin en tu navegador
 2. Inicia sesión con las credenciales arriba
 3. Arrastra tu archivo `nomina-marzo-abril-2026.pptx` (o DOCX, PDF)
 4. Suéltalo en la zona con icono 📁
@@ -19,7 +19,7 @@
 6. ¡Listo! El chatbot ya puede responder sobre marzo-abril
 
 ### Método 2: Clic para Seleccionar
-1. Accede a http://localhost:3001/admin
+1. Accede a http://localhost:3000/admin
 2. Haz clic en la zona de upload
 3. Selecciona tu archivo
 4. El sistema lo procesará automáticamente
@@ -94,7 +94,7 @@ npm run dev
 
 Después de subir un documento, verifica que Bootie puede usarlo:
 
-1. Abre http://localhost:3001 (página principal)
+1. Abre http://localhost:3000 (página principal)
 2. Abre el chat de Bootie (botón flotante)
 3. Pregunta: **"¿Cuándo pagan en marzo?"**
 4. Bootie debería responder con información de tu nuevo documento

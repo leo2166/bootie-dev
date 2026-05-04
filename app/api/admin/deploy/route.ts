@@ -38,37 +38,52 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Despliegue automático solo disponible en entorno local.' }, { status: 400 });
         }
 
-        console.log('🚀 Iniciando sincronización con GitHub...');
+        console.log('🚀 Iniciando sincronización robusta con GitHub...');
         
-        // Comandos de Git para subir los cambios de la KB
+        // 1. Verificar si hay cambios antes de intentar nada (independiente del idioma)
+        const { stdout: statusOut } = await execAsync('git status --porcelain', { cwd: process.cwd() });
+        
+        if (!statusOut.trim()) {
+            return NextResponse.json({ 
+                success: true, 
+                message: 'No hay cambios nuevos para subir. Todo está al día.',
+                log: 'Git status: clean'
+            });
+        }
+
+        // 2. Comandos optimizados
         const commands = [
-            'git add data/documents/*',
-            'git add data/knowledge-base.json',
-            'git commit -m "Auto-update knowledge base from Admin Panel"',
-            'git push'
+            'git add -A', // Sincroniza TODO (scripts, documentos, imágenes)
+            `git commit -m "Auto-update: ${new Date().toISOString()}"`,
+            'git push origin main' // Especificamos rama para evitar ambigüedad
         ];
 
         let log = '';
         for (const cmd of commands) {
             console.log(`Ejecutando: ${cmd}`);
             try {
-                const { stdout, stderr } = await execAsync(cmd, { cwd: process.cwd() });
+                // Añadimos un timeout de 30 segundos para evitar procesos zombies en Windows
+                const { stdout, stderr } = await execAsync(cmd, { 
+                    cwd: process.cwd(),
+                    timeout: 30000 
+                });
                 log += `\n$ ${cmd}\n${stdout}\n${stderr}`;
             } catch (cmdError: any) {
-                // git commit falla si no hay cambios, lo cual no es un error crítico
-                log += `\n$ ${cmd}\nERROR: ${cmdError.message}`;
+                // Manejo especial para el commit por si acaso, aunque status --porcelain debería evitar esto
                 if (cmd.includes('commit') && (cmdError.stdout?.includes('nothing to commit') || cmdError.stdout?.includes('no changes added'))) {
-                    console.log('No hay cambios para commitear, continuando...');
-                } else if (cmd.includes('push')) {
-                    throw new Error(`Error en git push: ${cmdError.message}`);
+                    console.log('Aviso: Nada que commitear detectado en ejecución.');
+                    continue;
                 }
+                
+                // Si el push falla o tarda demasiado (timeout)
+                throw new Error(`Error en comando [${cmd}]: ${cmdError.message}`);
             }
         }
 
         console.log('✅ Sincronización finalizada con éxito.');
         return NextResponse.json({ 
             success: true, 
-            message: 'Cambios subidos a GitHub exitosamente. Vercel comenzará el despliegue automáticamente.', 
+            message: 'Sincronización total completada. Vercel actualizará el sitio pronto.', 
             log 
         });
 

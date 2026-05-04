@@ -2,8 +2,9 @@
   "sheets": {
     "ajuptel-zulia": {
       "titulo": "AJUPTEL ZULIA",
-      "contenido": "**Asociación de jubilados Cantv Zulia**\n\n**Ajuptel Zulia.**\n\n** Contactos:**\n\n- Numero de Oficina: \n- Euclides Diaz: 0416-6687944\n- Mercedes Luengo: 0414-6497888\n- Tibisay Castellanos 0424-6830116\n- Olga Infante: 0414-6392742",
+      "contenido": "**Asociación de jubilados Cantv Zulia**\n\n**Ajuptel Zulia.**\n\n** Contactos:**\n\n- Numero de Oficina: \n- Euclides Diaz: 0416-6687944\n- Mercedes Luengo: 0414-6497888\n- Tibisay Castellanos 0424-6830116\n\n<!-- Prueba de sincronización con Git - 2026-05-04 -->\n- Olga Infante: 0414-6392742",
       "keywords": [
+        "2026",
         "ajuptel",
         "cantv",
         "contacto",
@@ -186,5 +187,5 @@
       ]
     }
   },
-  "lastUpdated": "2026-05-03T18:45:33.859Z"
+  "lastUpdated": "2026-05-04T12:06:02.826Z"
 }

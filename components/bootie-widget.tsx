@@ -54,19 +54,6 @@ export default function BootieWidget() {
         }
     };
 
-    // ---- VOZ ----
-    const speak = (text: string) => {
-        if (!('speechSynthesis' in window)) return;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "es-VE"; // Español de Venezuela
-        utterance.rate = 0.95; // velocidad natural
-        utterance.pitch = 1.0;
-        // Si el navegador tiene una voz ‘robot’, seleccionarla (opcional)
-        const voices = speechSynthesis.getVoices();
-        const robotVoice = voices.find(v => v.name.toLowerCase().includes('robot'));
-        if (robotVoice) utterance.voice = robotVoice;
-        window.speechSynthesis.speak(utterance);
-    };
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
@@ -95,7 +82,6 @@ export default function BootieWidget() {
             };
             setMessages((prev) => [...prev, assistantMessage]);
             playBeep(); // ¡Bip! al recibir respuesta
-            speak(data.response); // voz de la respuesta
         } catch (error) {
             const errorMessage: Message = {
                 role: "assistant",
@@ -131,7 +117,7 @@ export default function BootieWidget() {
                     aria-label="Abrir chat con Bootie"
                 >
                     {!isOpen ? (
-                        <img src="/robot_avatar.png" alt="Bootie" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <img src="/bootie_naranja.png" alt="Bootie" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     ) : (
                         <div className="bg-gradient-to-br from-blue-500 to-purple-600 w-full h-full flex items-center justify-center">
                             <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +135,7 @@ export default function BootieWidget() {
                     <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-4 flex items-center justify-between shadow-lg">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-0.5 shadow-inner overflow-hidden border-2 border-white/20">
-                                <img src="/robot_avatar.png" alt="Bootie Avatar" className="w-full h-full object-cover" />
+                                <img src="/bootie_naranja.png" alt="Bootie Avatar" className="w-full h-full object-cover" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg leading-tight notranslate" translate="no">Bootie</h3>
@@ -172,7 +158,7 @@ export default function BootieWidget() {
                             >
                                 {msg.role === "assistant" && (
                                     <div className="w-8 h-8 rounded-full bg-white flex-shrink-0 border border-gray-100 shadow-sm overflow-hidden flex items-center justify-center">
-                                        <img src="/robot_avatar.png" alt="B" className="w-full h-full object-cover" />
+                                        <img src="/bootie_naranja.png" alt="B" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div
@@ -192,7 +178,7 @@ export default function BootieWidget() {
                         {isLoading && (
                             <div className="flex items-end gap-2">
                                 <div className="w-8 h-8 rounded-full bg-white flex-shrink-0 border border-gray-100 shadow-sm overflow-hidden flex items-center justify-center">
-                                     <img src="/robot_avatar.png" alt="B" className="w-full h-full object-cover animate-pulse" />
+                                    <img src="/bootie_naranja.png" alt="B" className="w-full h-full object-cover animate-pulse" />
                                 </div>
                                 <div className="bg-white dark:bg-gray-700 rounded-2xl px-5 py-3 shadow-sm border border-gray-100 dark:border-gray-600 rounded-bl-none">
                                     <div className="flex space-x-1.5">

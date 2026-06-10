@@ -412,3 +412,36 @@ npm run subegit -- "Agrego documento de vacaciones"
 - Asegurar que la regeneración de la KB limpie correctamente los archivos temporales.
 
 **Última actualización**: 03 de Mayo, 2026 - 08:25
+
+---
+## 🚀 Fix Crítico: Error 500 HTML en Producción (09-Jun-2026)
+
+### ❌ Síntoma
+- **Log del cliente**: `💥 Excepción Fase 1: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON`
+- **HTTP**: `POST /api/admin/upload?skipRebuild=true` → **500** con página HTML de error de Next.js
+
+### 🔍 Causa Raíz
+En `app/api/admin/upload/route.ts`, la línea `fs.writeFileSync(outputPath, markdownContent, 'utf-8')` se ejecutaba de forma **incondicional** sin try/catch. En Vercel (filesystem de solo lectura), esta llamada lanzaba una excepción que Next.js interceptaba **antes** de que el bloque `catch` del endpoint pudiera devolver un JSON, resultando en la página HTML de error 500.
+
+**Causa secundaria**: `mammoth` estaba en `devDependencies`, por lo que no estaba disponible en el runtime de producción de Vercel.
+
+### ✅ Solución Aplicada (commit `88efe86`)
+1. **`app/api/admin/upload/route.ts`**:
+   - Detección de entorno Vercel con `process.env.VERCEL === '1'`
+   - El `writeFileSync` solo ocurre en entorno local (dentro de `if (!isVercel)`)
+   - El bloque de conversión tiene su propio `try/catch` que devuelve JSON 500, no HTML
+   - Si `skipRebuild=true`, siempre devuelve JSON con `preview`, `savedToDisk`, `isVercel`
+   - Si Vercel intenta rebuild, devuelve JSON 503 con mensaje claro
+
+2. **`app/admin/page.tsx`**:
+   - Si `data.savedToDisk === false`, muestra advertencia ámbar al usuario
+
+3. **`package.json`**:
+   - `mammoth` movido de `devDependencies` → `dependencies`
+
+### 📋 Estado Final
+- **Vercel**: La Fase 1 (conversión + preview) funciona y devuelve JSON ✅
+- **Vercel**: La Fase 2 (integración a KB) devuelve JSON 503 claro ✅
+- **Local**: Comportamiento completo sin cambios ✅
+
+**Última actualización**: 09 de Junio, 2026

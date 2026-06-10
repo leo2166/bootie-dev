@@ -13,7 +13,7 @@ async function testEndpoint(method, url, headers = {}) {
                 ...headers
             }
         };
-        const req = http.request(`http://localhost:3001${url}`, options, (res) => {
+        const req = http.request(`http://localhost:3000${url}`, options, (res) => {
             let data = '';
             res.on('data', (chunk) => data += chunk);
             res.on('end', () => {
@@ -65,7 +65,7 @@ async function runTests() {
     // 3. Check converters logic directly in Node
     console.log('\n--- Test 3: Converters Logic ---');
     try {
-        const { getConverterByExtension } = require('./lib/converters');
+        const { getConverterByExtension } = require('../lib/converters');
         const imgConverter = getConverterByExtension('test.jpg');
         console.log('Image converter for .jpg:', imgConverter);
         if (imgConverter === 'image') {

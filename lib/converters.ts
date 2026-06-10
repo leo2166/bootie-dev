@@ -14,10 +14,8 @@ const Tesseract = require('tesseract.js');
 
 const IMAGES_DIR = path.join(process.cwd(), 'public/kb-images');
 
-// Asegurar que directorio de imágenes existe
-if (!fs.existsSync(IMAGES_DIR)) {
-    fs.mkdirSync(IMAGES_DIR, { recursive: true });
-}
+// Nota: la creación del directorio se hace lazy (dentro de la función)
+// para evitar crashes en entornos de solo lectura (Vercel) al importar el módulo.
 
 // Función para convertir HTML a Markdown limpio
 function htmlToMarkdown(html: string): string {
@@ -113,14 +111,27 @@ export async function convertDocxToMarkdown(buffer: Buffer): Promise<string> {
     try {
         console.log('🔄 Iniciando conversión avanzada DOCX->HTML->MD');
 
+        // Crear el directorio de imágenes de forma lazy y segura
+        try {
+            if (!fs.existsSync(IMAGES_DIR)) {
+                fs.mkdirSync(IMAGES_DIR, { recursive: true });
+            }
+        } catch (dirError) {
+            console.warn('⚠️ No se pudo crear directorio de imágenes (entorno de solo lectura):', dirError);
+        }
+
         const options = {
             convertImage: mammoth.images.imgElement(async (image: any) => {
                 const imgBuffer = await image.read();
                 const imageFileName = `upload_${Date.now()}_${Math.random().toString(36).substring(7)}.png`;
                 const imagePath = path.join(IMAGES_DIR, imageFileName);
 
-                fs.writeFileSync(imagePath, imgBuffer);
-                console.log(`  📷 Imagen extraída: ${imageFileName}`);
+                try {
+                    fs.writeFileSync(imagePath, imgBuffer);
+                    console.log(`  📷 Imagen extraída: ${imageFileName}`);
+                } catch (imgWriteError) {
+                    console.warn(`  ⚠️ No se pudo guardar imagen ${imageFileName}:`, imgWriteError);
+                }
 
                 return { src: `/kb-images/${imageFileName}` };
             }),

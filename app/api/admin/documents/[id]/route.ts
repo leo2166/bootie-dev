@@ -33,17 +33,20 @@ export async function DELETE(
     const params = await props.params;
     console.log(`🗑️ DELETE /api/admin/documents/${params.id} - Solicitud recibida`);
 
-    // Verificar autenticación
     if (!checkAuth(req)) {
         console.log('❌ Autenticación DELETE fallida');
-        return NextResponse.json(
-            { error: 'No autorizado' },
-            { status: 401 }
-        );
+        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    // Vercel tiene filesystem de solo lectura — no se puede borrar en producción
+    if (process.env.VERCEL === '1') {
+        return NextResponse.json({
+            error: 'No disponible en Vercel. El filesystem es de solo lectura.',
+            hint: 'Usa el panel local (npm run dev) para gestionar documentos.',
+        }, { status: 503 });
     }
 
     try {
-        // Decodificar ID por si tiene caracteres especiales
         const documentId = decodeURIComponent(params.id);
         console.log('🆔 Document ID decoded:', documentId);
 
@@ -51,31 +54,22 @@ export async function DELETE(
         const filePath = path.join(documentsDir, `${documentId}.md`);
         console.log('📂 Target Path:', filePath);
 
-        // Verificar que el archivo existe
         if (!fs.existsSync(filePath)) {
             console.log('❌ Archivo no encontrado');
-            return NextResponse.json(
-                { error: 'Documento no encontrado' },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
         }
 
-        // Eliminar archivo
         console.log('⚠️ Eliminando archivo...');
         fs.unlinkSync(filePath);
         console.log('✅ Archivo eliminado del sistema de archivos');
 
-        // Regenerar knowledge-base.json
         console.log('🔄 Regenerando KB...');
         const kbPath = path.join(process.cwd(), 'data', 'knowledge-base.json');
         const result = buildKnowledgeBase(documentsDir, kbPath);
 
         if (!result.success) {
             console.error('❌ Error regenerando KB:', result.message);
-            return NextResponse.json(
-                { error: `Error al regenerar KB: ${result.message}` },
-                { status: 500 }
-            );
+            return NextResponse.json({ error: `Error al regenerar KB: ${result.message}` }, { status: 500 });
         }
 
         console.log('✨ Eliminación completada exitosamente');
@@ -87,9 +81,6 @@ export async function DELETE(
 
     } catch (error: any) {
         console.error('Error eliminando documento:', error);
-        return NextResponse.json(
-            { error: 'Error interno del servidor' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }
 }

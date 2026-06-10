@@ -26,12 +26,16 @@ function checkAuth(req: NextRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
-    // Verificar autenticación
     if (!checkAuth(req)) {
-        return NextResponse.json(
-            { error: 'No autorizado' },
-            { status: 401 }
-        );
+        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    // Vercel tiene filesystem de solo lectura — no se puede regenerar KB en producción
+    if (process.env.VERCEL === '1') {
+        return NextResponse.json({
+            error: 'No disponible en Vercel. El filesystem es de solo lectura.',
+            hint: 'Usa el panel local (npm run dev) y luego "Subir a Vercel" para sincronizar.',
+        }, { status: 503 });
     }
 
     try {
@@ -41,10 +45,7 @@ export async function POST(req: NextRequest) {
         const result = buildKnowledgeBase(documentsDir, kbPath);
 
         if (!result.success) {
-            return NextResponse.json(
-                { error: result.message },
-                { status: 500 }
-            );
+            return NextResponse.json({ error: result.message }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -55,9 +56,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error('Error regenerando KB:', error);
-        return NextResponse.json(
-            { error: 'Error interno del servidor' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }
 }

@@ -306,16 +306,50 @@ export default function AdminPage() {
                                 readOnly
                             />
 
-                            <div className="flex gap-4 justify-end">
+                            {/* Aviso de flujo Vercel */}
+                            {message?.text?.includes('Vercel') && (
+                                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-300 space-y-2">
+                                    <p className="font-bold">📋 Flujo para integrar desde Vercel:</p>
+                                    <ol className="list-decimal list-inside space-y-1 text-amber-200/80 text-xs">
+                                        <li>Descarga el archivo <code className="bg-black/30 px-1 rounded">.md</code> con el botón de abajo.</li>
+                                        <li>Cópialo en <code className="bg-black/30 px-1 rounded">data/documents/</code> en tu PC local.</li>
+                                        <li>Desde el panel <strong>local</strong> (<code className="bg-black/30 px-1 rounded">npm run dev</code>), haz clic en <strong>"Subir a Vercel"</strong>.</li>
+                                    </ol>
+                                </div>
+                            )}
+
+                            <div className="flex flex-wrap gap-3 justify-end">
                                 <button
                                     onClick={handleCancelPhase1}
                                     className="px-6 py-2 rounded bg-red-900/30 text-red-300 border border-red-500/30 hover:bg-red-900/50 transition-colors"
                                 >
-                                    ❌ Cancelar y Borrar
+                                    ❌ Cancelar
                                 </button>
+
+                                {/* Botón descargar .md — siempre disponible */}
+                                <button
+                                    onClick={() => {
+                                        const blob = new Blob([previewContent], { type: 'text/markdown' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = uploadedFilename || 'documento.md';
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                    className="px-6 py-2 rounded bg-blue-700/80 text-blue-200 border border-blue-500/40 hover:bg-blue-600 transition-colors flex items-center gap-2"
+                                >
+                                    ⬇️ Descargar .md
+                                </button>
+
+                                {/* Integrar a KB — solo funciona en local */}
                                 <button
                                     onClick={handlePhase2Integrate}
-                                    className="px-6 py-2 rounded bg-green-600 text-white font-bold hover:bg-green-500 hover:shadow-lg hover:shadow-green-500/20 transition-all flex items-center gap-2"
+                                    disabled={message?.text?.includes('Vercel')}
+                                    title={message?.text?.includes('Vercel') ? 'No disponible en Vercel. Usa el flujo local.' : ''}
+                                    className="px-6 py-2 rounded bg-green-600 text-white font-bold hover:bg-green-500 hover:shadow-lg hover:shadow-green-500/20 transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-green-600 disabled:hover:shadow-none"
                                 >
                                     <span>💾</span> Aceptar e Integrar a KB
                                 </button>

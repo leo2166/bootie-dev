@@ -96,7 +96,7 @@ function extractTitle(content: string): string {
 export function buildKnowledgeBase(documentsDir: string, outputFile: string): {
     success: boolean;
     message: string;
-    stats?: { documentCount: number };
+    stats?: { documentCount: number; totalDocs: number; totalChunks: number };
 } {
     try {
         // Verificar directorio

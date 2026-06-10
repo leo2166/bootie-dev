@@ -6,8 +6,8 @@ if (typeof global.DOMMatrix === 'undefined') {
     };
 }
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 // pdf-parse logic moved to child process

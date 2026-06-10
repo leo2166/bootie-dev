@@ -77,7 +77,15 @@ export default function AdminPage() {
                 setUploadedFilename(data.filename);
                 setUploadedFileId(data.filename.replace('.md', '')); // Asumimos ID básico para eliminación si cancela
                 setUploadPhase('PHASE_1_COMPLETE');
-                setMessage({ type: 'success', text: '✅ Fase 1: Archivo convertido. Por favor revisa y confirma.' });
+
+                if (data.savedToDisk === false) {
+                    setMessage({
+                        type: 'error',
+                        text: '⚠️ Previsualización generada, pero este entorno (Vercel) no puede guardar archivos. Para integrar documentos, usa el panel local → "Subir a Vercel".'
+                    });
+                } else {
+                    setMessage({ type: 'success', text: '✅ Fase 1: Archivo convertido. Por favor revisa y confirma.' });
+                }
             } else {
                 console.error('❌ Error Fase 1:', data.error);
                 setMessage({ type: 'error', text: data.error || 'Error en Fase 1' });

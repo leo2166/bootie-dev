@@ -79,23 +79,27 @@ export async function POST(req: NextRequest) {
         let markdownContent = '';
         debugInfo.steps.push(`Starting conversion for ${fileType}`);
 
-        switch (fileType) {
-            case 'docx':
-                markdownContent = await convertDocxToMarkdown(buffer);
-                break;
-            case 'pptx':
-                markdownContent = await convertPptxToMarkdown(buffer);
-                break;
-            case 'pdf':
-                markdownContent = await convertPdfToMarkdown(buffer);
-                break;
-            case 'image':
-                markdownContent = await convertImageToMarkdown(buffer);
-                break;
-            case 'txt':
-            case 'md':
-                markdownContent = buffer.toString('utf-8');
-                break;
+        try {
+            switch (fileType) {
+                case 'docx':
+                    markdownContent = await convertDocxToMarkdown(buffer);
+                    break;
+                case 'pptx':
+                    markdownContent = await convertPptxToMarkdown(buffer);
+                    break;
+                case 'pdf':
+                    markdownContent = await convertPdfToMarkdown(buffer);
+                    break;
+                case 'image':
+                    markdownContent = await convertImageToMarkdown(buffer);
+                    break;
+                case 'txt':
+                case 'md':
+                    markdownContent = buffer.toString('utf-8');
+                    break;
+            }
+        } catch (convError: any) {
+            return NextResponse.json({ error: `Error durante la conversión: ${convError.message}` }, { status: 500 });
         }
 
         debugInfo.rawLength = markdownContent.length;
@@ -117,8 +121,26 @@ export async function POST(req: NextRequest) {
         const documentsDir = path.join(process.cwd(), 'data', 'documents');
         const outputPath = path.join(documentsDir, outputFilename);
 
-        // Guardar archivo SIEMPRE para debug, incluso si es empty (pero lanzamos error)
-        fs.writeFileSync(outputPath, markdownContent, 'utf-8');
+        // Detectar entorno Vercel (filesystem de solo lectura)
+        const isVercel = process.env.VERCEL === '1';
+        let savedToDisk = false;
+
+        if (!isVercel) {
+            // En local: guardar el archivo convertido en data/documents/
+            try {
+                if (!fs.existsSync(documentsDir)) {
+                    fs.mkdirSync(documentsDir, { recursive: true });
+                }
+                fs.writeFileSync(outputPath, markdownContent, 'utf-8');
+                savedToDisk = true;
+                debugInfo.steps.push('File saved to disk');
+            } catch (fsError: any) {
+                console.error('Filesystem write failed:', fsError.message);
+                debugInfo.steps.push(`Disk write failed: ${fsError.message}`);
+            }
+        } else {
+            debugInfo.steps.push('Skipped disk write (Vercel read-only filesystem)');
+        }
 
         if (markdownContent.length < 10) {
             console.error('Content too short after conversion');
@@ -134,11 +156,24 @@ export async function POST(req: NextRequest) {
         if (skipRebuild) {
             return NextResponse.json({
                 success: true,
-                message: 'Fase 1 completada',
+                message: isVercel
+                    ? 'Fase 1 completada (solo preview — entorno Vercel no permite guardar archivos)'
+                    : 'Fase 1 completada',
                 filename: outputFilename,
                 preview: markdownContent,
+                savedToDisk,
+                isVercel,
                 debug: debugInfo
             });
+        }
+
+        // Si es Vercel y no se puede escribir, no tiene sentido intentar rebuild
+        if (isVercel || !savedToDisk) {
+            return NextResponse.json({
+                error: 'Este entorno no permite guardar archivos. Use el flujo: Local → npm run subegit → Vercel.',
+                hint: 'Suba los documentos desde el panel local y luego use "Subir a Vercel".',
+                debug: debugInfo
+            }, { status: 503 });
         }
 
         const kbPath = path.join(process.cwd(), 'data', 'knowledge-base.json');
